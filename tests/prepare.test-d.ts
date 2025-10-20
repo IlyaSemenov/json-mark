@@ -14,7 +14,7 @@ test("prepare transforms object with custom types", () => {
   expectTypeOf(result).toExtend<{
     id: string
     buffer: string
-    count: number
+    count: number | string
   }>()
 })
 

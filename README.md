@@ -1,6 +1,12 @@
 # json-mark
 
-A TypeScript utility library that extends JSON serialization to support custom types like `bigint` and `Uint8Array`.
+A TypeScript utility library that extends JSON serialization to support custom types:
+
+- `bigint`
+- `Uint8Array` and other typed arrays
+- `RegExp`
+- special numbers (`NaN`, `Infinity`, `-Infinity`)
+- any other custom type given the respective serializer callback
 
 `json-mark` encodes type information directly in JSON strings using a configurable marker character followed by a string type name:
 
@@ -29,10 +35,12 @@ npm install json-mark
 ```ts
 import { parse, stringify } from "json-mark"
 
-// Serialize objects with bigint and Uint8Array
+// Serialize objects with extended types
 const data = {
   id: 123456789012345678901234567890n,
   buffer: new Uint8Array([1, 2, 3, 4, 5]),
+  pattern: /test/gi,
+  special: Number.NaN,
   name: "test"
 }
 
@@ -41,6 +49,8 @@ const restored = parse(json)
 
 console.log(restored.id) // 123456789012345678901234567890n
 console.log(restored.buffer) // Uint8Array([1, 2, 3, 4, 5])
+console.log(restored.pattern) // /test/gi
+console.log(Number.isNaN(restored.special)) // true
 ```
 
 ## API Overview
@@ -105,32 +115,6 @@ const parsed = JSON.parse(json)
 
 const prepared = JSON.prepare(obj)
 const restored = JSON.restore(obj)
-```
-
-## Built-in Types
-
-`json-mark` comes with built-in support for the following types:
-
-### `bigint`
-
-```ts
-import { parse, stringify } from "json-mark"
-
-const data = { largeNumber: 9007199254740991n }
-const json = stringify(data)
-const restored = parse(json)
-// restored.largeNumber is bigint
-```
-
-### `Uint8Array`
-
-```ts
-import { parse, stringify } from "json-mark"
-
-const data = { buffer: new Uint8Array([255, 128, 64]) }
-const json = stringify(data)
-const restored = parse(json)
-// restored.buffer is Uint8Array
 ```
 
 ## Adding Custom Types
@@ -268,13 +252,17 @@ Examples with the default configuration (marker `\uEEEE`, delimiter `:`):
 ```text
 123n → "\uEEEEbigint:123"
 new Uint8Array([1, 2, 3]) → "\uEEEEUint8Array:AQID" (base64)
+/test/gi → "\uEEEERegExp:test|gi"
+Infinity → "\uEEEEInfinity" (no delimiter for empty payload)
 ```
 
-Deserialization reverses the process when a string starts with the configured marker and contains the delimiter:
+Deserialization reverses the process when a string starts with the configured marker:
 
 ```text
 "\uEEEEbigint:123" → 123n
 "\uEEEEUint8Array:AQID" → new Uint8Array([1, 2, 3])
+"\uEEEERegExp:test|gi" → /test/gi
+"\uEEEEInfinity" → Infinity
 ```
 
 Escaping: regular strings that start with the marker are encoded via the built-in `string` type to avoid ambiguity:

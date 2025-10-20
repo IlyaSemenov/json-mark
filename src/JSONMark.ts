@@ -109,7 +109,8 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
   #stringifyValue = (value: unknown): unknown => {
     for (const [typeName, { test, stringify }] of Object.entries(this.types)) {
       if (test(value)) {
-        return this.options.marker + typeName + this.options.delimiter + (stringify ?? String)(value)
+        const payload = (stringify ?? String)(value)
+        return this.options.marker + typeName + (payload ? (this.options.delimiter + payload) : "")
       }
     }
     return value
@@ -118,12 +119,12 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
   #parseValue = (value: unknown): unknown => {
     if (typeof value === "string" && value.startsWith(this.options.marker)) {
       const delimiterIndex = value.indexOf(this.options.delimiter)
-      if (delimiterIndex > 0) {
-        const typeName = value.slice(1, delimiterIndex)
-        const type = this.types[typeName]
-        if (type) {
-          return type.parse(value.slice(delimiterIndex + 1))
-        }
+      const [typeName, stringifiedValue] = delimiterIndex > 0
+        ? [value.slice(1, delimiterIndex), value.slice(delimiterIndex + 1)]
+        : [value.slice(1), ""]
+      const type = this.types[typeName]
+      if (type) {
+        return type.parse(stringifiedValue)
       }
     }
     return value
@@ -143,7 +144,7 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
  */
 type PrepareTypes<T, CustomTypes>
   = T extends CustomTypes
-    ? StringifiedValue<T>
+    ? T extends (number | boolean | null) ? (T | StringifiedValue<T>) : StringifiedValue<T>
     : T extends Array<infer U>
       ? Array<PrepareTypes<U, CustomTypes>>
       : T extends object

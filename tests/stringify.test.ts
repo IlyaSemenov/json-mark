@@ -19,6 +19,11 @@ it("handles Uint8Array values", () => {
   expect(parse(json)).toEqual(value)
 })
 
+it("doesn't store value for non-value types", () => {
+  const json = stringify(Infinity)
+  expect(json.length).toEqual(3 + "Infinity".length) // 2 for quotes, 1 for marker
+})
+
 it("handles strings that start with PUA markers", () => {
   const str = "\uEE00test"
   const json = stringify(str)
