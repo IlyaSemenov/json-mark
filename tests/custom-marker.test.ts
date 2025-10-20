@@ -1,7 +1,7 @@
-import { builtinTypes, JSONMark } from "json-mark"
+import { JSONMark } from "json-mark"
 import { expect, it } from "vitest"
 
-const customJSON = new JSONMark(builtinTypes, { marker: "→", delimiter: "|" })
+const customJSON = new JSONMark({ marker: "→", delimiter: "|" })
 
 it("supports custom marker and delimiter", () => {
   const value = 12345678901234567890n

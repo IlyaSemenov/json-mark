@@ -1,9 +1,15 @@
 import { base64ToUint8Array, isUint8Array, uint8ArrayToBase64 } from "uint8array-extras"
 
 import { customType } from "./customType"
-import type { TypeRegistry } from "./customType"
+import type { TypeRegistry } from "./JSONMark"
 
 export const builtinTypes = {
+  // Escape strings
+  "string": {
+    test: (value, options) => typeof value === "string" && value.startsWith(options.marker),
+    parse: value => value,
+  },
+
   // Special numbers (must be first to test before other types)
   "NaN": customType<number>({
     test: value => Number.isNaN(value),
@@ -96,4 +102,4 @@ export const builtinTypes = {
     stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new BigUint64Array(base64ToUint8Array(value).buffer),
   }),
-} satisfies TypeRegistry
+} satisfies TypeRegistry<any>

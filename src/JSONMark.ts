@@ -1,3 +1,4 @@
+import { builtinTypes } from "./builtins"
 import type { CustomType } from "./customType"
 import { originalJSON } from "./install"
 
@@ -39,24 +40,29 @@ const defaultOptions: JSONMarkOptions = {
   delimiter: ":",
 }
 
-type TypeRegistry<T = unknown> = Record<string, CustomType<T>>
+export type TypeRegistry<T> = Record<string, CustomType<T>>
 
-export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unknown>> implements JSON {
-  constructor(types: {
-    [K in keyof TTypeMap]: CustomType<TTypeMap[K]>
-  }, options?: Partial<JSONMarkOptions>) {
-    this.options = { ...defaultOptions, ...options }
+export type BuiltinTypeMap = {
+  [K in keyof typeof builtinTypes]: typeof builtinTypes[K] extends CustomType<infer U> ? U : never
+}
+
+// Infer TCustomTypeMap (typeName → type) from the types option (TypeRegistry).
+export class JSONMark<TCustomTypeMap extends Record<string, any> = object> implements JSON {
+  constructor(
+    options?: Partial<JSONMarkOptions> & {
+      types?: { [K in keyof TCustomTypeMap]: CustomType<TCustomTypeMap[K]> }
+    },
+  ) {
+    const { types, ...restOptions } = options ?? {}
+    this.options = { ...defaultOptions, ...restOptions }
     this.types = {
-      string: {
-        test: value => typeof value === "string" && value.startsWith(this.options.marker),
-        parse: value => value,
-      },
+      ...builtinTypes,
       ...types,
     }
   }
 
-  readonly types: TypeRegistry<any>
   readonly options: JSONMarkOptions
+  readonly types: TypeRegistry<any>
 
   get [Symbol.toStringTag]() {
     return "JSONMark"
@@ -108,8 +114,9 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
 
   #stringifyValue = (value: unknown): unknown => {
     for (const [typeName, { test, stringify }] of Object.entries(this.types)) {
-      if (test(value)) {
-        const payload = (stringify ?? String)(value)
+      if (test(value, this.options)) {
+        // TODO also try toJSON() if stringify is not provided.
+        const payload = stringify ? stringify(value, this.options) : String(value)
         return this.options.marker + typeName + (payload ? (this.options.delimiter + payload) : "")
       }
     }
@@ -124,14 +131,15 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
         : [value.slice(1), ""]
       const type = this.types[typeName]
       if (type) {
-        return type.parse(stringifiedValue)
+        return type.parse(stringifiedValue, this.options)
       }
     }
     return value
   }
 
-  prepare = <T>(obj: T): PrepareTypes<T, TTypeMap[keyof TTypeMap]> => {
-    return originalJSON.parse(this.stringify(obj))
+  prepare = <T>(obj: T) => {
+    type TypeMap = Omit<BuiltinTypeMap, keyof TCustomTypeMap> & TCustomTypeMap
+    return originalJSON.parse(this.stringify(obj)) as PrepareTypes<T, TypeMap[keyof TypeMap]>
   }
 
   restore = <T>(obj: T): RestoreTypes<T> => {

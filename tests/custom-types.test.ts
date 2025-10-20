@@ -1,4 +1,4 @@
-import { builtinTypes, customType, JSONMark } from "json-mark"
+import { customType, JSONMark } from "json-mark"
 import { describe, expect, it } from "vitest"
 
 class Point {
@@ -30,8 +30,9 @@ const colorType = customType<Color>({
 describe("custom types", () => {
   it("supports custom Point type", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = { position: new Point(10, 20), name: "test" }
@@ -46,9 +47,10 @@ describe("custom types", () => {
 
   it("supports multiple custom types", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
-      Color: colorType,
+      types: {
+        Point: pointType,
+        Color: colorType,
+      },
     })
 
     const data = {
@@ -71,8 +73,9 @@ describe("custom types", () => {
 
   it("custom types work with nested objects", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = {
@@ -94,8 +97,9 @@ describe("custom types", () => {
 
   it("custom types work with prepare and restore", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = { position: new Point(15, 25) }
@@ -115,8 +119,9 @@ describe("custom types", () => {
 
   it("custom types coexist with built-in types", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = {
@@ -137,23 +142,6 @@ describe("custom types", () => {
     expect(restored.name).toBe("mixed")
   })
 
-  it("custom instance without built-in types", () => {
-    const customJSON = new JSONMark({
-      "\uEE10": pointType,
-    })
-
-    const data = { position: new Point(7, 14) }
-    const json = customJSON.stringify(data)
-    const restored = customJSON.parse(json)
-
-    expect(restored.position).toBeInstanceOf(Point)
-    expect(restored.position.x).toBe(7)
-    expect(restored.position.y).toBe(14)
-
-    // Built-in types should NOT work
-    expect(() => customJSON.stringify({ num: 123n })).toThrow()
-  })
-
   it("custom type with default stringify (uses String())", () => {
     class SimpleValue {
       constructor(public value: string) {}
@@ -163,12 +151,13 @@ describe("custom types", () => {
     }
 
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      SimpleValue: customType<SimpleValue>({
-        test: value => value instanceof SimpleValue,
-        // No stringify provided, should use String(value)
-        parse: str => new SimpleValue(str),
-      }),
+      types: {
+        SimpleValue: customType<SimpleValue>({
+          test: value => value instanceof SimpleValue,
+          // No stringify provided, should use String(value)
+          parse: str => new SimpleValue(str),
+        }),
+      },
     })
 
     const data = { simple: new SimpleValue("hello") }
@@ -181,8 +170,9 @@ describe("custom types", () => {
 
   it("supports custom replacer with custom types", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = { position: new Point(1, 2), filter: "me" }
@@ -200,8 +190,9 @@ describe("custom types", () => {
 
   it("supports custom reviver with custom types", () => {
     const customJSON = new JSONMark({
-      ...builtinTypes,
-      Point: pointType,
+      types: {
+        Point: pointType,
+      },
     })
 
     const data = { position: new Point(3, 4), multiplier: 2 }

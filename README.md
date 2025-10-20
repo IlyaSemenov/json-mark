@@ -117,27 +117,28 @@ const restored = JSON.restore(obj)
 
 ## Adding Custom Types
 
-You can create custom `JSONMark` instances with your own types.
+You can extend custom `JSONMark` instances with your own types.
 
 ```ts
-import { builtinTypes, customType, JSONMark } from "json-mark"
+import { customType, JSONMark } from "json-mark"
 
 // Define a custom type
 class Point {
   constructor(public x: number, public y: number) {}
 }
 
-// Create custom instance with built-in types + Point (type name is a plain string)
+// Create custom instance with your custom types (built-in types are auto-included)
 const customJSON = new JSONMark({
-  ...builtinTypes,
-  Point: customType<Point>({
-    test: value => value instanceof Point,
-    stringify: value => `${value.x},${value.y}`,
-    parse: (str) => {
-      const [x, y] = str.split(",").map(Number)
-      return new Point(x!, y!)
-    },
-  }),
+  types: {
+    Point: customType<Point>({
+      test: value => value instanceof Point,
+      stringify: value => `${value.x},${value.y}`,
+      parse: (str) => {
+        const [x, y] = str.split(",").map(Number)
+        return new Point(x!, y!)
+      },
+    }),
+  },
 })
 
 // Use it
@@ -187,11 +188,12 @@ console.log(restored.id) // 123n
 Or install a custom instance with additional types:
 
 ```ts
-import { builtinTypes, install, JSONMark } from "json-mark"
+import { install, JSONMark } from "json-mark"
 
 const customJSON = new JSONMark({
-  ...builtinTypes,
-  MyType: myCustomType,
+  types: {
+    MyType: myCustomType,
+  },
 })
 
 install(customJSON)
@@ -272,9 +274,9 @@ Escaping: regular strings that start with the marker are encoded via the built-i
 You can customize the marker and delimiter. For example, to minimize escaping overhead, you could pick a Unicode Private Use Area (PUA) character for the marker:
 
 ```ts
-import { builtinTypes, JSONMark } from "json-mark"
+import { JSONMark } from "json-mark"
 
-const customJSON = new JSONMark(builtinTypes, {
+const customJSON = new JSONMark({
   marker: "\uEEEE",
   delimiter: "|",
 })
