@@ -150,8 +150,8 @@ const customJSON = new JSONMark({
     stringify: value => `${value.x},${value.y}`,
     parse: (str) => {
       const [x, y] = str.split(",").map(Number)
-      return new Point(x, y)
-    }
+      return new Point(x!, y!)
+    },
   }),
 })
 
@@ -165,7 +165,7 @@ const restored = customJSON.parse(json)
 **Type Handler Interface:**
 
 ```ts
-interface JSONType<T> {
+interface CustomType<T> {
   test: (value: unknown) => boolean
   stringify?: (value: T) => string // Optional, defaults to String(value)
   parse: (value: string) => T

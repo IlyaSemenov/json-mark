@@ -1,6 +1,5 @@
+import type { CustomType } from "./customType"
 import { originalJSON } from "./install"
-import type { JSONType } from "./transform"
-import { parseValue, stringifyValue } from "./transform"
 
 const objectTypeTag = Symbol("objectType")
 
@@ -20,10 +19,23 @@ export type StringifiedValue<T> = string & {
   [valueTypeTag]: T
 }
 
+const markerStart = "\uE000"
+const markerEnd = "\uF8FF"
+
+function isMarker(marker: string) {
+  return marker.length === 1 && marker >= markerStart && marker <= markerEnd
+}
+
+function startsWithMarker(value: string) {
+  return value.length >= 1 && isMarker(value[0]!)
+}
+
 export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unknown>> implements JSON {
   constructor(private readonly types: {
-    [K in keyof TTypeMap]: JSONType<TTypeMap[K]>
-  }) {}
+    [K in keyof TTypeMap]: CustomType<TTypeMap[K]>
+  }) {
+    // TODO validate that the markers are within PUA range.
+  }
 
   get [Symbol.toStringTag]() {
     return "JSONMark"
@@ -35,11 +47,11 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
     replacer?: ((this: any, key: string, value: any) => any) | (string | number)[] | null,
     space?: string | number,
   ): StringifiedObject<T> => {
-    const types = this.types
+    const stringifyValue = this.#stringifyValue
     return originalJSON.stringify(
       obj,
       function (key, value) {
-        const stringifiedValue = stringifyValue(value, types)
+        const stringifiedValue = stringifyValue(value)
         if (stringifiedValue !== value) {
           return stringifiedValue
         }
@@ -57,11 +69,11 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
     text: StringifiedObject<T>,
     reviver?: (this: any, key: string, value: any) => any,
   ): T => {
-    const types = this.types
+    const parseValue = this.#parseValue
     return originalJSON.parse(
       text,
       function (key, value) {
-        const parsedValue = parseValue(value, types)
+        const parsedValue = parseValue(value)
         if (parsedValue !== value) {
           return parsedValue
         }
@@ -71,6 +83,30 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
         return value
       },
     )
+  }
+
+  #stringifyValue = (value: unknown): unknown => {
+    if (typeof value === "string" && startsWithMarker(value)) {
+      // markerStart is the escape marker.
+      return markerStart + value
+    }
+    for (const [marker, { test, stringify }] of Object.entries(this.types)) {
+      if (test(value)) {
+        return marker + (stringify ?? String)(value)
+      }
+    }
+    return value
+  }
+
+  #parseValue = (value: unknown): unknown => {
+    if (typeof value === "string" && startsWithMarker(value)) {
+      const marker = value[0]!
+      const parse = marker === markerStart ? (value: string) => value : this.types[marker]?.parse
+      if (parse) {
+        return parse(value.slice(1))
+      }
+    }
+    return value
   }
 
   prepare = <T>(obj: T): PrepareTypes<T, TTypeMap[keyof TTypeMap]> => {

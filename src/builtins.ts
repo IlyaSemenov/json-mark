@@ -1,15 +1,10 @@
 import { base64ToUint8Array, isUint8Array, uint8ArrayToBase64 } from "uint8array-extras"
 
+import { customType } from "./customType"
+import type { TypeRegistry } from "./customType"
 import { JSONMark } from "./JSONMark"
-import { customType, startsWithMarker } from "./transform"
-import type { TypeRegistry } from "./transform"
 
 export const builtinTypes = {
-  "\uEE00": customType<string>({
-    test: value => typeof value === "string" && startsWithMarker(value),
-    stringify: value => value,
-    parse: value => value,
-  }),
   "\uEE01": customType<bigint>({
     test: value => typeof value === "bigint",
     stringify: value => value.toString(),
