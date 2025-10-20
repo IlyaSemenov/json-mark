@@ -14,8 +14,6 @@ A TypeScript utility library that extends JSON serialization to support custom t
 123456789n → "=bigint:123456789"
 ```
 
-By default, the marker is an unreadable Private Use Area (PUA) Unicode character (`\uEEEE`).
-
 ## Use Cases
 
 - **Database**: Persist `bigint` and other types in JSON fields
@@ -120,8 +118,6 @@ const restored = JSON.restore(obj)
 ## Adding Custom Types
 
 You can create custom `JSONMark` instances with your own types.
-
-### Creating a Custom Instance
 
 ```ts
 import { builtinTypes, customType, JSONMark } from "json-mark"
@@ -242,40 +238,50 @@ json-mark encodes values as strings using the following pattern:
 <marker><typeName><delimiter><payload>
 ```
 
-- **marker**: a single character. Defaults to `\uEEEE` (PUA). Configurable.
+- **marker**: a single character. Defaults to `=`. Configurable.
 - **typeName**: a string key identifying the type (e.g., `bigint`, `Uint8Array`, `Point`).
 - **delimiter**: a separator character between the type and payload. Defaults to `:`. Configurable.
 - **payload**: the stringified value for that type.
 
-Examples with the default configuration (marker `\uEEEE`, delimiter `:`):
+Examples with the default configuration (marker `=`, delimiter `:`):
 
 ```text
-123n → "\uEEEEbigint:123"
-new Uint8Array([1, 2, 3]) → "\uEEEEUint8Array:AQID" (base64)
-/test/gi → "\uEEEERegExp:test|gi"
-Infinity → "\uEEEEInfinity" (no delimiter for empty payload)
+123n → "=bigint:123"
+new Uint8Array([1, 2, 3]) → "=Uint8Array:AQID" (base64)
+/test/gi → "=RegExp:test|gi"
+Infinity → "=Infinity" (no delimiter for empty payload)
 ```
 
 Deserialization reverses the process when a string starts with the configured marker:
 
 ```text
-"\uEEEEbigint:123" → 123n
-"\uEEEEUint8Array:AQID" → new Uint8Array([1, 2, 3])
-"\uEEEERegExp:test|gi" → /test/gi
-"\uEEEEInfinity" → Infinity
+"=bigint:123" → 123n
+"=Uint8Array:AQID" → new Uint8Array([1, 2, 3])
+"=RegExp:test|gi" → /test/gi
+"=Infinity" → Infinity
 ```
 
 Escaping: regular strings that start with the marker are encoded via the built-in `string` type to avoid ambiguity:
 
 ```text
-"\uEEEEhello" → "\uEEEEstring:\uEEEEhello" → parse → "\uEEEEhello"
+"=hello" → "=string:=hello" → parse → "=hello"
 ```
 
-You can customize the marker and delimiter. For example, with marker `=` and delimiter `|`:
+### Using Custom Marker and Delimiter
+
+You can customize the marker and delimiter. For example, to minimize escaping overhead, you could pick a Unicode Private Use Area (PUA) character for the marker:
+
+```ts
+import { builtinTypes, JSONMark } from "json-mark"
+
+const customJSON = new JSONMark(builtinTypes, {
+  marker: "\uEEEE",
+  delimiter: "|",
+})
+```
 
 ```text
-123n → "=bigint|123"
-"=hello" → "=string|→hello"
+123n → "\uEEEEbigint|123"
 ```
 
 ## TypeScript Support

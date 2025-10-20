@@ -24,14 +24,14 @@ it("doesn't store value for non-value types", () => {
   expect(json.length).toEqual(3 + "Infinity".length) // 2 for quotes, 1 for marker
 })
 
-it("handles strings that start with PUA markers", () => {
-  const str = "\uEE00test"
+it("handles strings that start with a marker", () => {
+  const str = "=test"
   const json = stringify(str)
   expect(parse(json)).toEqual(str)
 })
 
-it("handles strings that start with PUA markers in nested objects", () => {
-  const obj = { escaped: "\uEE00test" }
+it("handles strings that start with a marker in nested objects", () => {
+  const obj = { escaped: "=test" }
   const json = stringify(obj)
   expect(parse(json)).toEqual(obj)
 })

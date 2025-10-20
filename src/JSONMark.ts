@@ -23,7 +23,7 @@ export interface JSONMarkOptions {
   /**
    * The marker prefix for custom types.
    *
-   * @default "\uEEEE" // a Unicode Private Use Area character that is not likely to be used in normal JSON strings
+   * @default "="
    */
   marker: string
   /**
@@ -35,7 +35,7 @@ export interface JSONMarkOptions {
 }
 
 const defaultOptions: JSONMarkOptions = {
-  marker: "\uEEEE",
+  marker: "=",
   delimiter: ":",
 }
 
