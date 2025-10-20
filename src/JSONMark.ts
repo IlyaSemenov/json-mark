@@ -19,23 +19,44 @@ export type StringifiedValue<T> = string & {
   [valueTypeTag]: T
 }
 
-const markerStart = "\uE000"
-const markerEnd = "\uF8FF"
-
-function isMarker(marker: string) {
-  return marker.length === 1 && marker >= markerStart && marker <= markerEnd
+export interface JSONMarkOptions {
+  /**
+   * The marker prefix for custom types.
+   *
+   * @default "\uEEEE" // a Unicode Private Use Area character that is not likely to be used in normal JSON strings
+   */
+  marker: string
+  /**
+   * The delimiter between the custom type ID and the stringified value.
+   *
+   * @default ":"
+   */
+  delimiter: string
 }
 
-function startsWithMarker(value: string) {
-  return value.length >= 1 && isMarker(value[0]!)
+const defaultOptions: JSONMarkOptions = {
+  marker: "\uEEEE",
+  delimiter: ":",
 }
+
+type TypeRegistry<T = unknown> = Record<string, CustomType<T>>
 
 export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unknown>> implements JSON {
-  constructor(private readonly types: {
+  constructor(types: {
     [K in keyof TTypeMap]: CustomType<TTypeMap[K]>
-  }) {
-    // TODO validate that the markers are within PUA range.
+  }, options?: Partial<JSONMarkOptions>) {
+    this.options = { ...defaultOptions, ...options }
+    this.types = {
+      string: {
+        test: value => typeof value === "string" && value.startsWith(this.options.marker),
+        parse: value => value,
+      },
+      ...types,
+    }
   }
+
+  readonly types: TypeRegistry<any>
+  readonly options: JSONMarkOptions
 
   get [Symbol.toStringTag]() {
     return "JSONMark"
@@ -86,24 +107,23 @@ export class JSONMark<TTypeMap extends Record<string, any> = Record<string, unkn
   }
 
   #stringifyValue = (value: unknown): unknown => {
-    if (typeof value === "string" && startsWithMarker(value)) {
-      // markerStart is the escape marker.
-      return markerStart + value
-    }
-    for (const [marker, { test, stringify }] of Object.entries(this.types)) {
+    for (const [typeName, { test, stringify }] of Object.entries(this.types)) {
       if (test(value)) {
-        return marker + (stringify ?? String)(value)
+        return this.options.marker + typeName + this.options.delimiter + (stringify ?? String)(value)
       }
     }
     return value
   }
 
   #parseValue = (value: unknown): unknown => {
-    if (typeof value === "string" && startsWithMarker(value)) {
-      const marker = value[0]!
-      const parse = marker === markerStart ? (value: string) => value : this.types[marker]?.parse
-      if (parse) {
-        return parse(value.slice(1))
+    if (typeof value === "string" && value.startsWith(this.options.marker)) {
+      const delimiterIndex = value.indexOf(this.options.delimiter)
+      if (delimiterIndex > 0) {
+        const typeName = value.slice(1, delimiterIndex)
+        const type = this.types[typeName]
+        if (type) {
+          return type.parse(value.slice(delimiterIndex + 1))
+        }
       }
     }
     return value

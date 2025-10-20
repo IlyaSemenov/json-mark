@@ -2,7 +2,13 @@
 
 A TypeScript utility library that extends JSON serialization to support custom types like `bigint` and `Uint8Array`.
 
-`json-mark` uses Private Use Area (PUA) Unicode characters to encode type information directly in JSON strings, enabling seamless serialization and deserialization of non-standard JavaScript types.
+`json-mark` encodes type information directly in JSON strings using a configurable marker character followed by a string type name:
+
+```text
+123456789n → "=bigint:123456789"
+```
+
+By default, the marker is an unreadable Private Use Area (PUA) Unicode character (`\uEEEE`).
 
 ## Use Cases
 
@@ -141,11 +147,10 @@ class Point {
   constructor(public x: number, public y: number) {}
 }
 
-// Create custom instance with built-in types + Point
+// Create custom instance with built-in types + Point (type name is a plain string)
 const customJSON = new JSONMark({
   ...builtinTypes,
-  // Create a custom type and assign it to use an unique PUA character (\uE000-\uF8FF)
-  "\uEE10": customType<Point>({
+  Point: customType<Point>({
     test: value => value instanceof Point,
     stringify: value => `${value.x},${value.y}`,
     parse: (str) => {
@@ -206,7 +211,7 @@ import { builtinTypes, install, JSONMark } from "json-mark"
 
 const customJSON = new JSONMark({
   ...builtinTypes,
-  "\uEE10": myCustomType,
+  MyType: myCustomType,
 })
 
 install(customJSON)
@@ -247,30 +252,43 @@ originalJSON.stringify({ id: 123n }) // Throws TypeError
 
 ## How It Works
 
-json-mark uses [Private Use Area (PUA)](https://en.wikipedia.org/wiki/Private_Use_Areas) Unicode characters (U+E000 to U+F8FF) as markers to encode type information:
+json-mark encodes values as strings using the following pattern:
 
-1. **During serialization**: Custom values are converted to strings prefixed with a PUA marker:
+```text
+<marker><typeName><delimiter><payload>
+```
 
-   ```text
-   123n → "\uEE01123"
-   new Uint8Array([1, 2]) → "\uEE02AQI=" (base64)
-   ```
+- **marker**: a single character. Defaults to `\uEEEE` (PUA). Configurable.
+- **typeName**: a string key identifying the type (e.g., `bigint`, `Uint8Array`, `Point`).
+- **delimiter**: a separator character between the type and payload. Defaults to `:`. Configurable.
+- **payload**: the stringified value for that type.
 
-2. **During deserialization**: Strings starting with PUA markers are converted back to their original types:
+Examples with the default configuration (marker `\uEEEE`, delimiter `:`):
 
-   ```text
-   "\uEE01123" → 123n
-   "\uEE02AQI=" → new Uint8Array([1, 2])
-   ```
+```text
+123n → "\uEEEEbigint:123"
+new Uint8Array([1, 2, 3]) → "\uEEEEUint8Array:AQID" (base64)
+```
 
-3. **Escaping**: Regular strings that happen to start with PUA markers are automatically escaped to prevent conflicts.
+Deserialization reverses the process when a string starts with the configured marker and contains the delimiter:
 
-**Built-in markers:**
+```text
+"\uEEEEbigint:123" → 123n
+"\uEEEEUint8Array:AQID" → new Uint8Array([1, 2, 3])
+```
 
-- `\uEE00`: String escaping mechanism
-- `\uEE01`: `bigint`
-- `\uEE02`: `Uint8Array`
-- `\uEE10`-`\uF8FF`: Available for your custom types
+Escaping: regular strings that start with the marker are encoded via the built-in `string` type to avoid ambiguity:
+
+```text
+"\uEEEEhello" → "\uEEEEstring:\uEEEEhello" → parse → "\uEEEEhello"
+```
+
+You can customize the marker and delimiter. For example, with marker `=` and delimiter `|`:
+
+```text
+123n → "=bigint|123"
+"=hello" → "=string|→hello"
+```
 
 ## TypeScript Support
 

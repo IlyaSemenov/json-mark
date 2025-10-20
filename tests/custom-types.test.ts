@@ -31,7 +31,7 @@ describe("custom types", () => {
   it("supports custom Point type", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = { position: new Point(10, 20), name: "test" }
@@ -47,8 +47,8 @@ describe("custom types", () => {
   it("supports multiple custom types", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
-      "\uEE11": colorType,
+      Point: pointType,
+      Color: colorType,
     })
 
     const data = {
@@ -72,7 +72,7 @@ describe("custom types", () => {
   it("custom types work with nested objects", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = {
@@ -95,7 +95,7 @@ describe("custom types", () => {
   it("custom types work with prepare and restore", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = { position: new Point(15, 25) }
@@ -116,7 +116,7 @@ describe("custom types", () => {
   it("custom types coexist with built-in types", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = {
@@ -164,7 +164,7 @@ describe("custom types", () => {
 
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": customType<SimpleValue>({
+      SimpleValue: customType<SimpleValue>({
         test: value => value instanceof SimpleValue,
         // No stringify provided, should use String(value)
         parse: str => new SimpleValue(str),
@@ -182,7 +182,7 @@ describe("custom types", () => {
   it("supports custom replacer with custom types", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = { position: new Point(1, 2), filter: "me" }
@@ -201,7 +201,7 @@ describe("custom types", () => {
   it("supports custom reviver with custom types", () => {
     const customJSON = new JSONMark({
       ...builtinTypes,
-      "\uEE10": pointType,
+      Point: pointType,
     })
 
     const data = { position: new Point(3, 4), multiplier: 2 }

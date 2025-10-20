@@ -17,7 +17,7 @@ const pointType = customType<Point>({
 test("custom JSONMark stringify returns string", () => {
   const customJSON = new JSONMark({
     ...builtinTypes,
-    "\uEE10": pointType,
+    Point: pointType,
   })
 
   const data = { position: new Point(10, 20) }
@@ -28,7 +28,7 @@ test("custom JSONMark stringify returns string", () => {
 test("round-trip with custom type preserves type", () => {
   const customJSON = new JSONMark({
     ...builtinTypes,
-    "\uEE10": pointType,
+    Point: pointType,
   })
 
   const original = {
