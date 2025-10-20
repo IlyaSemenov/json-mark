@@ -1,25 +1,8 @@
 import { prepare, restore } from "json-mark"
 import { expectTypeOf, test } from "vitest"
 
-test("prepare transforms bigint to string", () => {
-  const value = 123n
-  const result = prepare(value)
-  expectTypeOf(result).toBeString()
-})
-
-test("prepare transforms object with custom types", () => {
-  const obj = { id: 123n, buffer: new Uint8Array([1, 2, 3]), count: 42 }
-  const result = prepare(obj)
-
-  expectTypeOf(result).toExtend<{
-    id: string
-    buffer: string
-    count: number | string
-  }>()
-})
-
 test("round-trip preserves type", () => {
-  const original = {
+  const value = {
     kind: "users",
     users: [
       { id: 1n, name: "Alice" },
@@ -32,8 +15,16 @@ test("round-trip preserves type", () => {
     },
   }
 
-  const prepared = prepare(original)
+  const prepared = prepare(value)
   const restored = restore(prepared)
 
-  expectTypeOf(restored).toEqualTypeOf<typeof original>()
+  expectTypeOf(restored).toEqualTypeOf<typeof value>()
+})
+
+test("restore works with manual type", () => {
+  const value = { id: 123n, buffer: new Uint8Array([1, 2, 3]), count: 42 }
+  const prepared = prepare(value) as string
+  expectTypeOf(prepared).toBeString()
+  expectTypeOf(restore(prepared)).toBeUnknown()
+  expectTypeOf(restore<typeof value>(prepared)).toEqualTypeOf<typeof value>()
 })

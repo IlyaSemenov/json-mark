@@ -288,25 +288,23 @@ const customJSON = new JSONMark({
 
 ## TypeScript Support
 
-json-mark is written in TypeScript and provides full type safety:
+json-mark is written in TypeScript and provides type inference for the values:
 
 ```ts
 import { parse, prepare, restore, stringify } from "json-mark"
 
 const data = { id: 123n, name: "test" }
 
-// `stringified` is a string
+// `stringified` is a string (tagged with the original type).
 const stringified = stringify(data)
 
-// `prepared` is { id: string, name: string }
+// `prepared` is JSONValue (tagged with the original type).
 const prepared = prepare(data)
 
 // Both of these will have the original type:
 const restored1 = parse(stringified)
 const restored2 = restore(prepared)
 ```
-
-When you create a custom `JSONMark` instance, the custom types are also tracked through the revive cycle.
 
 ## License
 

@@ -110,7 +110,7 @@ describe("custom types", () => {
     expect(json).toBeTruthy()
 
     const parsed = JSON.parse(json)
-    const restored = customJSON.restore(parsed)
+    const restored = customJSON.restore<typeof data>(parsed)
 
     expect(restored.position).toBeInstanceOf(Point)
     expect(restored.position.x).toBe(15)

@@ -2,22 +2,22 @@ import { builtinTypes } from "./builtins"
 import type { CustomType } from "./customType"
 import { originalJSON } from "./install"
 
-const objectTypeTag = Symbol("objectType")
+const typeTag = Symbol("type")
 
 /**
- * The final JSON string.
+ * The final JSON string, tagged with the original type.
  */
 export type StringifiedObject<T> = string & {
-  [objectTypeTag]?: T
+  [typeTag]?: T
 }
 
-const valueTypeTag = Symbol("valueType")
+export type JSONValue = string | number | boolean | null | undefined | JSONValue[] | { [key: string]: JSONValue }
 
 /**
- * The inner string value created for a custom type value (for future final JSON stringification).
+ * The "prepared" value (i.e., a JSON-compatible value ready for external serialization), tagged with the original type.
  */
-export type StringifiedValue<T> = string & {
-  [valueTypeTag]: T
+export type PreparedObject<T> = JSONValue & {
+  [typeTag]?: T
 }
 
 export interface JSONMarkOptions {
@@ -33,36 +33,34 @@ export interface JSONMarkOptions {
    * @default ":"
    */
   delimiter: string
+  /**
+   * The type registry (typeName → CustomType definition).
+   */
+  types: TypeRegistry
 }
 
 const defaultOptions: JSONMarkOptions = {
   marker: "=",
   delimiter: ":",
+  types: builtinTypes,
 }
 
-export type TypeRegistry<T> = Record<string, CustomType<T>>
+export type TypeRegistry = Record<string, CustomType<any>>
 
-export type BuiltinTypeMap = {
-  [K in keyof typeof builtinTypes]: typeof builtinTypes[K] extends CustomType<infer U> ? U : never
-}
-
-// Infer TCustomTypeMap (typeName → type) from the types option (TypeRegistry).
-export class JSONMark<TCustomTypeMap extends Record<string, any> = object> implements JSON {
-  constructor(
-    options?: Partial<JSONMarkOptions> & {
-      types?: { [K in keyof TCustomTypeMap]: CustomType<TCustomTypeMap[K]> }
-    },
-  ) {
-    const { types, ...restOptions } = options ?? {}
-    this.options = { ...defaultOptions, ...restOptions }
-    this.types = {
-      ...builtinTypes,
-      ...types,
+export class JSONMark implements JSON {
+  constructor(options?: Partial<JSONMarkOptions>) {
+    const { types, ...restOptions } = { ...defaultOptions, ...options }
+    this.options = {
+      ...defaultOptions,
+      ...restOptions,
+      types: {
+        ...defaultOptions.types,
+        ...types,
+      },
     }
   }
 
   readonly options: JSONMarkOptions
-  readonly types: TypeRegistry<any>
 
   get [Symbol.toStringTag]() {
     return "JSONMark"
@@ -113,7 +111,7 @@ export class JSONMark<TCustomTypeMap extends Record<string, any> = object> imple
   }
 
   #stringifyValue = (value: unknown): unknown => {
-    for (const [typeName, { test, stringify }] of Object.entries(this.types)) {
+    for (const [typeName, { test, stringify }] of Object.entries(this.options.types)) {
       if (test(value, this.options)) {
         // TODO also try toJSON() if stringify is not provided.
         const payload = stringify ? stringify(value, this.options) : String(value)
@@ -129,7 +127,7 @@ export class JSONMark<TCustomTypeMap extends Record<string, any> = object> imple
       const [typeName, stringifiedValue] = delimiterIndex > 0
         ? [value.slice(1, delimiterIndex), value.slice(delimiterIndex + 1)]
         : [value.slice(1), ""]
-      const type = this.types[typeName]
+      const type = this.options.types[typeName]
       if (type) {
         return type.parse(stringifiedValue, this.options)
       }
@@ -138,35 +136,10 @@ export class JSONMark<TCustomTypeMap extends Record<string, any> = object> imple
   }
 
   prepare = <T>(obj: T) => {
-    type TypeMap = Omit<BuiltinTypeMap, keyof TCustomTypeMap> & TCustomTypeMap
-    return originalJSON.parse(this.stringify(obj)) as PrepareTypes<T, TypeMap[keyof TypeMap]>
+    return originalJSON.parse(this.stringify(obj)) as PreparedObject<T>
   }
 
-  restore = <T>(obj: T): RestoreTypes<T> => {
+  restore = <T>(obj: PreparedObject<T>): T => {
     return this.parse(originalJSON.stringify(obj))
   }
 }
-
-/**
- * Recursively replace custom types with a type-tagged string.
- */
-type PrepareTypes<T, CustomTypes>
-  = T extends CustomTypes
-    ? T extends (number | boolean | null) ? (T | StringifiedValue<T>) : StringifiedValue<T>
-    : T extends Array<infer U>
-      ? Array<PrepareTypes<U, CustomTypes>>
-      : T extends object
-        ? { [K in keyof T]: PrepareTypes<T[K], CustomTypes> }
-        : T
-
-/**
- * Recursively replace type-tagged strings with the original type.
- */
-type RestoreTypes<T>
-  = T extends StringifiedValue<infer U>
-    ? U
-    : T extends Array<infer U>
-      ? Array<RestoreTypes<U>>
-      : T extends object
-        ? { [K in keyof T]: RestoreTypes<T[K]> }
-        : T

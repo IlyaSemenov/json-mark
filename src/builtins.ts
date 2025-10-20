@@ -102,4 +102,4 @@ export const builtinTypes = {
     stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new BigUint64Array(base64ToUint8Array(value).buffer),
   }),
-} satisfies TypeRegistry<any>
+} satisfies TypeRegistry
