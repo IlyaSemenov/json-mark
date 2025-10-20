@@ -306,6 +306,25 @@ const restored1 = parse(stringified)
 const restored2 = restore(prepared)
 ```
 
+When passing prepared data through the native `JSON.stringify` and `JSON.parse`, you will need to cast manually:
+
+```ts
+import { prepare, restore } from "json-mark"
+
+const data = { id: 123n, name: "test" }
+
+// `prepared` is JSONValue (tagged with the original type).
+const prepared = prepare(data)
+
+const json = JSON.stringify(prepared) // returns string
+const parsed = JSON.parse(json) // returns any
+
+// Manually restore the type:
+const restored = restore(parsed) as typeof data
+// or:
+const restored = restore<typeof data>(parsed)
+```
+
 ## License
 
 MIT © Ilya Semenov
