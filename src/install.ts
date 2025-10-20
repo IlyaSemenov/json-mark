@@ -1,4 +1,4 @@
-import { JSON as builtinJSON } from "./builtins"
+import { JSON as builtinJSON } from "./instance"
 
 function pickMethods(JSON: JSON) {
   return {
