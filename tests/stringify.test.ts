@@ -8,20 +8,24 @@ it("handles standard JSON types", () => {
 })
 
 it("handles bigint values", () => {
-  const obj = { bigNum: 123456789012345678901234567890n }
-  const json = stringify(obj)
-  expect(parse(json)).toEqual(obj)
+  const value = 123456789012345678901234567890n
+  const json = stringify(value)
+  expect(parse(json)).toEqual(value)
 })
 
 it("handles Uint8Array values", () => {
-  const obj = { buffer: new Uint8Array([1, 2, 3, 4, 5]) }
-  const json = stringify(obj)
-  const result = parse(json)
-  expect(result.buffer).toBeInstanceOf(Uint8Array)
-  expect(Array.from(result.buffer)).toEqual([1, 2, 3, 4, 5])
+  const value = new Uint8Array([1, 2, 3, 4, 5])
+  const json = stringify(value)
+  expect(parse(json)).toEqual(value)
 })
 
 it("handles strings that start with PUA markers", () => {
+  const str = "\uEE00test"
+  const json = stringify(str)
+  expect(parse(json)).toEqual(str)
+})
+
+it("handles strings that start with PUA markers in nested objects", () => {
   const obj = { escaped: "\uEE00test" }
   const json = stringify(obj)
   expect(parse(json)).toEqual(obj)
@@ -36,21 +40,13 @@ it("handles nested objects with custom types", () => {
     },
   }
   const json = stringify(obj)
-  const result = parse(json)
-  expect(result.nested.bigNum).toBe(999n)
-  expect(result.nested.buffer).toBeInstanceOf(Uint8Array)
-  expect(Array.from(result.nested.buffer)).toEqual([255, 0, 128])
-  expect(result.nested.normal).toBe("test")
+  expect(parse(json)).toEqual(obj)
 })
 
 it("handles arrays with custom types", () => {
   const obj = { items: [1n, 2n, 3n, new Uint8Array([1, 2])] }
   const json = stringify(obj)
-  const result = parse(json)
-  expect(result.items[0]).toBe(1n)
-  expect(result.items[1]).toBe(2n)
-  expect(result.items[2]).toBe(3n)
-  expect(result.items[3]).toBeInstanceOf(Uint8Array)
+  expect(parse(json)).toEqual(obj)
 })
 
 it("supports custom replacer function", () => {

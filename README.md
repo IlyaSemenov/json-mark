@@ -4,6 +4,14 @@ A TypeScript utility library that extends JSON serialization to support custom t
 
 `json-mark` uses Private Use Area (PUA) Unicode characters to encode type information directly in JSON strings, enabling seamless serialization and deserialization of non-standard JavaScript types.
 
+## Use Cases
+
+- **Database**: Persist `bigint` and other types in JSON fields
+- **API communication**: Send custom types over JSON APIs
+- **Testing**: Snapshot testing with custom types
+- **Inter-process communication**: Send custom types between Node.js processes
+- **Websocket messages**: Transmit custom types in real-time apps
+
 ## Installation
 
 ```sh
@@ -48,7 +56,7 @@ const obj = parse(json)
 **Features:**
 
 - Handles all standard JSON types
-- Automatically serializes/deserializes custom registered types
+- Automatically serializes/deserializes custom types
 - Supports `replacer` and `reviver` functions
 - Supports pretty-printing with `space` parameter
 
@@ -79,6 +87,20 @@ console.log(restored.buffer) // Uint8Array([1, 2, 3])
 
 **Type Safety:** Both `prepare()` and `restore()` are fully type-safe. TypeScript will correctly transform custom types to a branded `string` and back.
 
+### `JSON`
+
+The default `JSON` instance that supports `stringify`, `parse`, `prepare`, and `restore` methods:
+
+```ts
+import { JSON } from "json-mark"
+
+const json = JSON.stringify(obj)
+const parsed = JSON.parse(json)
+
+const prepared = JSON.prepare(obj)
+const restored = JSON.restore(obj)
+```
+
 ## Built-in Types
 
 `json-mark` comes with built-in support for the following types:
@@ -105,120 +127,69 @@ const restored = parse(json)
 // restored.buffer is Uint8Array
 ```
 
-**Note:** Built-in types are automatically registered when you import from `json-mark`. If your bundler tree-shakes the side effect, see [Manual Registration](#manual-registration-of-built-in-types) below.
+## Adding Custom Types
 
-## Registering Custom Types
+You can create custom `JSONMark` instances with your own types.
 
-You can register your own custom types to extend json-mark's serialization capabilities.
-
-### Runtime Registration
-
-Use `registerType()` to register a new type at runtime:
+### Creating a Custom Instance
 
 ```ts
-import { parse, registerType, stringify } from "json-mark"
+import { builtinTypes, customType, JSONMark } from "json-mark"
 
 // Define a custom type
 class Point {
   constructor(public x: number, public y: number) {}
 }
 
-// Register the type
-registerType<Point>({
-  marker: "\uEE10", // Must be a PUA character (\uE000-\uF8FF)
-  test: value => value instanceof Point,
-  stringify: value => `${value.x},${value.y}`,
-  parse: (str) => {
-    const [x, y] = str.split(",").map(Number)
-    return new Point(x, y)
-  }
+// Create custom instance with built-in types + Point
+const customJSON = new JSONMark({
+  ...builtinTypes,
+  // Create a custom type and assign it to use an unique PUA character (\uE000-\uF8FF)
+  "\uEE10": customType<Point>({
+    test: value => value instanceof Point,
+    stringify: value => `${value.x},${value.y}`,
+    parse: (str) => {
+      const [x, y] = str.split(",").map(Number)
+      return new Point(x, y)
+    }
+  }),
 })
 
-// Now you can serialize Point instances
+// Use it
 const data = { position: new Point(10, 20) }
-const json = stringify(data)
-const restored = parse(json)
+const json = customJSON.stringify(data)
+const restored = customJSON.parse(json)
 // restored.position is Point { x: 10, y: 20 }
+```
+
+**Type Handler Interface:**
+
+```ts
+interface JSONType<T> {
+  test: (value: unknown) => boolean
+  stringify?: (value: T) => string // Optional, defaults to String(value)
+  parse: (value: string) => T
+}
 ```
 
 **Parameters:**
 
-- `marker`: A single PUA Unicode character (\uE000-\uF8FF) that uniquely identifies this type
 - `test`: Function that returns `true` if a value is of this type
 - `stringify` (optional): Function to convert the value to a string (defaults to `String(value)`)
 - `parse`: Function to convert the string back to the original type
-
-### Type-Level Registration with Module Augmentation
-
-To get full TypeScript support with `prepare()` and `restore()`, augment the `CustomTypesRegistry` interface:
-
-```ts
-import { prepare, registerType, restore } from "json-mark"
-
-class Point {
-  constructor(public x: number, public y: number) {}
-}
-
-// 1. Register at runtime
-registerType<Point>({
-  marker: "\uEE10",
-  test: value => value instanceof Point,
-  stringify: value => `${value.x},${value.y}`,
-  parse: (str) => {
-    const [x, y] = str.split(",").map(Number)
-    return new Point(x, y)
-  }
-})
-
-// 2. Augment the type registry
-declare module "json-mark" {
-  interface CustomTypesRegistry {
-    Point: Point
-  }
-}
-
-// Now prepare() and restore() are fully type-safe
-const data = { position: new Point(10, 20), name: "origin" }
-const prepared = prepare(data)
-// prepared.position is MarkedString<Point>
-// prepared.name is string
-
-const restored = restore(prepared)
-// restored.position is Point
-// restored.name is string
-```
-
-## Manual Registration of Built-in Types
-
-If your bundler tree-shakes the automatic side effect registration (e.g., when using specific bundler configurations), you can manually register built-in types:
-
-```ts
-import { registerBuiltinTypes } from "json-mark"
-
-// Call this once at your application entry point
-registerBuiltinTypes()
-```
-
-This explicitly registers `bigint`, `Uint8Array`, and the string escaping mechanism.
-
-**When do you need this?**
-
-- When you import from `json-mark` but built-in types don't work
-- When your bundler removes side effects despite the `sideEffects` field in `package.json`
-- When you want explicit control over when types are registered
 
 ## Global JSON Override: `install()` and `uninstall()`
 
 You can monkey-patch the global `JSON` object to make custom type support transparent throughout your application:
 
-### `install()`
+### `install(instance?)`
 
-Replaces global `JSON.stringify` and `JSON.parse` with json-mark's enhanced versions:
+Replaces global `JSON.stringify` and `JSON.parse` with json-mark's enhanced versions. By default, installs the built-in instance:
 
 ```ts
 import { install } from "json-mark"
 
-// Install enhanced JSON globally
+// Install with built-in types
 install()
 
 // Now the global JSON object supports custom types
@@ -228,11 +199,18 @@ const restored = JSON.parse(json) // Works!
 console.log(restored.id) // 123n
 ```
 
-**Features:**
+Or install a custom instance with additional types:
 
-- Makes custom type support available everywhere
-- Safe to call multiple times (won't double-install)
-- Can be useful for testing or when you control the entire application
+```ts
+import { builtinTypes, install, JSONMark } from "json-mark"
+
+const customJSON = new JSONMark({
+  ...builtinTypes,
+  "\uEE10": myCustomType,
+})
+
+install(customJSON)
+```
 
 ### `uninstall()`
 
@@ -299,28 +277,22 @@ json-mark uses [Private Use Area (PUA)](https://en.wikipedia.org/wiki/Private_Us
 json-mark is written in TypeScript and provides full type safety:
 
 ```ts
-import { prepare, restore } from "json-mark"
-import type { MarkedString } from "json-mark"
+import { parse, prepare, restore, stringify } from "json-mark"
 
 const data = { id: 123n, name: "test" }
 
-const prepared = prepare(data)
-// Type: { id: MarkedString<bigint>, name: string }
+// `stringified` is a string
+const stringified = stringify(data)
 
-const restored = restore(prepared)
-// Type: { id: bigint, name: string }
+// `prepared` is { id: string, name: string }
+const prepared = prepare(data)
+
+// Both of these will have the original type:
+const restored1 = parse(stringified)
+const restored2 = restore(prepared)
 ```
 
-For custom types, use module augmentation to get the same type safety (see [Type-Level Registration](#type-level-registration-with-module-augmentation)).
-
-## Use Cases
-
-- **Database drivers**: Serialize `bigint` IDs and `Uint8Array` buffers
-- **API communication**: Send custom types over JSON APIs
-- **State management**: Store complex types in JSON-based state
-- **Testing**: Snapshot testing with custom types
-- **Inter-process communication**: Send custom types between Node.js processes
-- **WebSocket messages**: Transmit custom types in real-time apps
+When you create a custom `JSONMark` instance, the custom types are also tracked through the revive cycle.
 
 ## License
 

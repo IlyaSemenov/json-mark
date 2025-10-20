@@ -3,22 +3,21 @@ import { describe, expect, it } from "vitest"
 
 describe("prepare", () => {
   it("converts bigint for external JSON.stringify", () => {
-    const obj = { num: 123n }
-    const prepared = prepare(obj)
+    const value = 123456789012345678901234567890n
+    const prepared = prepare(value)
 
     // Should be serializable with native JSON
     const json = JSON.stringify(prepared)
-    expect(json).toContain("123")
+    expect(json).toContain("123456789012345678901234567890")
   })
 
   it("converts Uint8Array for external JSON.stringify", () => {
-    const obj = { buffer: new Uint8Array([1, 2, 3]) }
-    const prepared = prepare(obj)
+    const value = new Uint8Array([1, 2, 3])
+    const prepared = prepare(value)
 
     // Should be serializable with native JSON
     const json = JSON.stringify(prepared)
-    expect(json).toBeTruthy()
-    expect(typeof json).toBe("string")
+    expect(json).toContain("AQID") // base64 of 123
   })
 
   it("handles nested custom types", () => {
@@ -45,7 +44,7 @@ describe("prepare", () => {
 
 describe("restore", () => {
   it("restores bigint from prepared data", () => {
-    const prepared = { num: "\uEE01123" }
+    const prepared = prepare({ num: 123n })
     const restored = restore(prepared)
     expect(restored.num).toBe(123n)
   })
@@ -62,18 +61,18 @@ describe("restore", () => {
   })
 
   it("handles nested custom types", () => {
-    const prepared = {
+    const prepared = prepare({
       level1: {
-        num: "\uEE01999",
+        num: 999n,
         level2: {
-          buffer: "\uEE02/wA=",
+          buffer: new Uint8Array([1, 2, 3]),
         },
       },
-    }
+    })
     const restored = restore(prepared)
     expect(restored.level1.num).toBe(999n)
     expect(restored.level1.level2.buffer).toBeInstanceOf(Uint8Array)
-    expect(Array.from(restored.level1.level2.buffer)).toEqual([255, 0])
+    expect(Array.from(restored.level1.level2.buffer)).toEqual([1, 2, 3])
   })
 
   it("preserves standard types", () => {

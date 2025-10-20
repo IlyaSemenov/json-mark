@@ -1,26 +1,27 @@
 import { base64ToUint8Array, isUint8Array, uint8ArrayToBase64 } from "uint8array-extras"
 
-import { registerType, startsWithMarker } from "./registry"
+import { JSONMark } from "./JSONMark"
+import { customType, startsWithMarker } from "./transform"
+import type { TypeRegistry } from "./transform"
 
-export function registerBuiltinTypes() {
-  // Escape strings that start with any PUA marker.
-  // This is future proof for new markers/types.
-  registerType({
-    marker: "\uEE00",
+export const builtinTypes = {
+  "\uEE00": customType<string>({
     test: value => typeof value === "string" && startsWithMarker(value),
+    stringify: value => value,
     parse: value => value,
-  })
-
-  registerType<bigint>({
-    marker: "\uEE01",
+  }),
+  "\uEE01": customType<bigint>({
     test: value => typeof value === "bigint",
+    stringify: value => value.toString(),
     parse: value => BigInt(value),
-  })
-
-  registerType<Uint8Array>({
-    marker: "\uEE02",
+  }),
+  "\uEE02": customType<Uint8Array>({
     test: value => isUint8Array(value),
     stringify: value => uint8ArrayToBase64(value),
     parse: value => base64ToUint8Array(value),
-  })
-}
+  }),
+} satisfies TypeRegistry
+
+export const JSON = new JSONMark(builtinTypes)
+
+export const { stringify, parse, prepare, restore } = JSON
