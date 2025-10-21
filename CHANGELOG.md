@@ -1,5 +1,11 @@
 # json-mark
 
+## 1.0.3
+
+### Patch Changes
+
+- c94911f: Fix handling `null` and `unknown` types with prepare/restore.
+
 ## 1.0.2
 
 ### Patch Changes
