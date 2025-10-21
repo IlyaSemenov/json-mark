@@ -40,6 +40,11 @@ describe("prepare", () => {
     const prepared = prepare(obj)
     expect(prepared).toEqual(obj)
   })
+
+  it("handles null", () => {
+    const prepared = prepare(null)
+    expect(prepared).toBeNull()
+  })
 })
 
 describe("restore", () => {
@@ -77,6 +82,10 @@ describe("restore", () => {
     const obj = { str: "test", num: 42, bool: true, arr: [1, 2, 3] }
     const restored = restore(obj)
     expect(restored).toEqual(obj)
+  })
+
+  it("restores null", () => {
+    expect(restore(null)).toBeNull()
   })
 })
 
@@ -126,6 +135,7 @@ describe("round-trip with external JSON", () => {
       bigValue: 999999999999999999n,
       data: new Uint8Array([255, 128, 64]),
       tags: ["a", "b", "c"],
+      txHash: null,
     }
 
     const prepared = prepare(value)
