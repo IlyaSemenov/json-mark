@@ -25,8 +25,10 @@ A TypeScript utility library that extends JSON serialization to support custom t
 ## Installation
 
 ```sh
-npm install json-mark
+npm install @ilyasemenov/json-mark
 ```
+
+The project currently lives under my personal namespace. The package name `json-mark` is available, but NPM forbids to use it: _"Package name too similar to existing package jsonmark"_
 
 ## Quick Start
 
