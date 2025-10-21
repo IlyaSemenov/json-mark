@@ -11,7 +11,7 @@ export type StringifiedObject<T> = string & {
   [typeTag]?: T
 }
 
-export type JSONValue = string | number | boolean | null | undefined | JSONValue[] | { [key: string]: JSONValue }
+export type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue }
 
 /**
  * The "prepared" value (i.e., a JSON-compatible value ready for external serialization), tagged with the original type.
