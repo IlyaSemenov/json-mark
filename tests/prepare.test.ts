@@ -50,14 +50,12 @@ describe("restore", () => {
   })
 
   it("restores Uint8Array from prepared data", () => {
-    const original = new Uint8Array([1, 2, 3, 4])
-    const prepared = prepare({ buffer: original })
+    const value = { buffer: new Uint8Array([1, 2, 3, 4]) }
+    const prepared = prepare(value)
     const json = JSON.stringify(prepared)
     const parsed = JSON.parse(json)
-    const restored = restore(parsed)
-
-    expect(restored.buffer).toBeInstanceOf(Uint8Array)
-    expect(Array.from(restored.buffer)).toEqual([1, 2, 3, 4])
+    const restored = restore<typeof value>(parsed)
+    expect(restored).toEqual(value)
   })
 
   it("handles nested custom types", () => {
@@ -84,7 +82,7 @@ describe("restore", () => {
 
 describe("round-trip with external JSON", () => {
   it("preserves data through prepare → JSON.stringify → JSON.parse → restore", () => {
-    const original = {
+    const value = {
       bigNum: 123456789012345678901234567890n,
       buffer: new Uint8Array([1, 2, 3, 4, 5]),
       text: "hello",
@@ -94,7 +92,7 @@ describe("round-trip with external JSON", () => {
     }
 
     // Prepare for external serialization
-    const prepared = prepare(original)
+    const prepared = prepare(value)
 
     // Use native JSON methods
     const json = JSON.stringify(prepared)
@@ -103,32 +101,25 @@ describe("round-trip with external JSON", () => {
     // Restore original types
     const restored = restore(parsed)
 
-    expect(restored.bigNum).toBe(original.bigNum)
-    expect(restored.buffer).toBeInstanceOf(Uint8Array)
-    expect(Array.from(restored.buffer)).toEqual([1, 2, 3, 4, 5])
-    expect(restored.text).toBe(original.text)
-    expect(restored.nested.anotherBig).toBe(original.nested.anotherBig)
+    expect(restored).toEqual(value)
   })
 
   it("handles arrays of custom types", () => {
-    const original = {
+    const value = {
       numbers: [1n, 2n, 3n],
       buffers: [new Uint8Array([1]), new Uint8Array([2, 3])],
     }
 
-    const prepared = prepare(original)
+    const prepared = prepare(value)
     const json = JSON.stringify(prepared)
     const parsed = JSON.parse(json)
     const restored = restore(parsed)
 
-    expect(restored.numbers).toEqual([1n, 2n, 3n])
-    expect(restored.buffers[0]).toBeInstanceOf(Uint8Array)
-    expect(Array.from(restored.buffers[0])).toEqual([1])
-    expect(Array.from(restored.buffers[1])).toEqual([2, 3])
+    expect(restored).toEqual(value)
   })
 
   it("handles mixed standard and custom types", () => {
-    const original = {
+    const value = {
       id: 1,
       name: "test",
       active: true,
@@ -137,17 +128,11 @@ describe("round-trip with external JSON", () => {
       tags: ["a", "b", "c"],
     }
 
-    const prepared = prepare(original)
+    const prepared = prepare(value)
     const json = JSON.stringify(prepared)
     const parsed = JSON.parse(json)
     const restored = restore(parsed)
 
-    expect(restored.id).toBe(1)
-    expect(restored.name).toBe("test")
-    expect(restored.active).toBe(true)
-    expect(restored.bigValue).toBe(999999999999999999n)
-    expect(restored.data).toBeInstanceOf(Uint8Array)
-    expect(Array.from(restored.data)).toEqual([255, 128, 64])
-    expect(restored.tags).toEqual(["a", "b", "c"])
+    expect(restored).toEqual(value)
   })
 })
