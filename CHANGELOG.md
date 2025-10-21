@@ -1,5 +1,11 @@
 # json-mark
 
+## 1.0.1
+
+### Patch Changes
+
+- 0ac00cf: Publish as `@ilyasemenov/json-mark`.
+
 ## 1.0.0
 
 ### Major Changes
