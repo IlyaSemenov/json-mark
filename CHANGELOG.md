@@ -1,5 +1,11 @@
 # json-mark
 
+## 1.0.5
+
+### Patch Changes
+
+- fbb1a78: Fix `restore` to type correctly in a callback expecting `any`.
+
 ## 1.0.4
 
 ### Patch Changes
