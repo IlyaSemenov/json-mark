@@ -36,3 +36,8 @@ test("restore works with manual type", () => {
   expectTypeOf(restore(prepared) as typeof value).toEqualTypeOf<typeof value>()
   expectTypeOf(restore<typeof value>(prepared)).toEqualTypeOf<typeof value>()
 })
+
+test("restore works with any", () => {
+  type TransformerFn = (value: any) => any
+  const _transformer: TransformerFn = (value: unknown) => value === undefined ? value : restore(value)
+})
