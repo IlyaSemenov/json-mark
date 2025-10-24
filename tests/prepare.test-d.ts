@@ -1,4 +1,3 @@
-import type { JSONValue } from "json-mark"
 import { prepare, restore } from "json-mark"
 import { expectTypeOf, it, test } from "vitest"
 
@@ -33,6 +32,7 @@ test("restore works with manual type", () => {
   const value = { id: 123n, buffer: new Uint8Array([1, 2, 3]), count: 42 }
   const prepared = prepare(value) as string
   expectTypeOf(prepared).toBeString()
-  expectTypeOf(restore(prepared)).toExtend<JSONValue>()
+  expectTypeOf(restore(prepared)).toBeUnknown()
+  expectTypeOf(restore(prepared) as typeof value).toEqualTypeOf<typeof value>()
   expectTypeOf(restore<typeof value>(prepared)).toEqualTypeOf<typeof value>()
 })

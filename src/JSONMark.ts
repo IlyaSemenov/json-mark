@@ -145,7 +145,6 @@ export class JSONMark implements JSON {
   restore: {
     (obj: null): null
     <T>(obj: PreparedObject<T>): T
-    (obj: unknown): JSONValue
   } = <T>(obj: PreparedObject<T> | null | unknown): T | null => {
     return this.parse(originalJSON.stringify(obj))
   }
