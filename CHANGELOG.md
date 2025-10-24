@@ -1,5 +1,11 @@
 # json-mark
 
+## 1.0.4
+
+### Patch Changes
+
+- 1b84ac7: Do not falsely advertise `restore(unknown)` to return `JSONValue`.
+
 ## 1.0.3
 
 ### Patch Changes
