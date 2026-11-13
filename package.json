@@ -2,11 +2,13 @@
   "name": "@ilyasemenov/json-mark",
   "version": "1.0.5",
   "description": "Serialize custom types in JSON with tagged strings.",
+  "homepage": "https://github.com/IlyaSemenov/json-mark#readme",
+  "bugs": "https://github.com/IlyaSemenov/json-mark/issues",
   "license": "MIT",
   "author": "Ilya Semenov",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IlyaSemenov/json-mark"
+    "url": "git+https://github.com/IlyaSemenov/json-mark.git"
   },
   "files": [
     "README.md",
@@ -14,9 +16,9 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "exports": {
-    ".": "./dist/index.js",
+    ".": "./dist/index.mjs",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -32,14 +34,16 @@
     "uint8array-extras": "^1.5.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/core": "^0.18.5",
     "@changesets/cli": "^2.29.7",
     "@ilyasemenov/oxc-config": "^0.1.3",
     "@tsconfig/bun": "^1.0.12",
     "@types/bun": "^1.4.4",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
-    "tsdown": "^0.15.9",
-    "typescript": "^5.9.3"
+    "publint": "^0.3.25",
+    "tsdown": "^0.23.7",
+    "typescript": "^7.0.2"
   },
   "packageManager": "bun@1.4.4"
 }
