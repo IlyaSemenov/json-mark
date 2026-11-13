@@ -33,7 +33,7 @@ The project currently lives under my personal namespace. The package name `json-
 ## Quick Start
 
 ```ts
-import { parse, stringify } from "json-mark"
+import { parse, stringify } from "@ilyasemenov/json-mark"
 
 // Serialize objects with extended types
 const data = {
@@ -60,7 +60,7 @@ console.log(Number.isNaN(restored.special)) // true
 Use these as drop-in replacements for `JSON.stringify()` and `JSON.parse()` with extended type support:
 
 ```ts
-import { parse, stringify } from "json-mark"
+import { parse, stringify } from "@ilyasemenov/json-mark"
 
 // stringify supports the same signature as JSON.stringify
 const json = stringify(obj)
@@ -81,7 +81,7 @@ const obj = parse(json)
 For scenarios where you need to use native `JSON.stringify()` and `JSON.parse()` (e.g., when passing data to external APIs or libraries):
 
 ```ts
-import { prepare, restore } from "json-mark"
+import { prepare, restore } from "@ilyasemenov/json-mark"
 
 const data = {
   id: 123n,
@@ -108,7 +108,7 @@ console.log(restored.buffer) // Uint8Array([1, 2, 3])
 The default `JSON` instance that supports `stringify`, `parse`, `prepare`, and `restore` methods:
 
 ```ts
-import { JSON } from "json-mark"
+import { JSON } from "@ilyasemenov/json-mark"
 
 const json = JSON.stringify(obj)
 const parsed = JSON.parse(json)
@@ -122,7 +122,7 @@ const restored = JSON.restore(obj)
 You can extend custom `JSONMark` instances with your own types.
 
 ```ts
-import { customType, JSONMark } from "json-mark"
+import { customType, JSONMark } from "@ilyasemenov/json-mark"
 
 // Define a custom type
 class Point {
@@ -178,7 +178,7 @@ You can monkey-patch the global `JSON` object to make custom type support transp
 Replaces global `JSON.stringify` and `JSON.parse` with json-mark's enhanced versions. By default, installs the built-in instance:
 
 ```ts
-import { install } from "json-mark"
+import { install } from "@ilyasemenov/json-mark"
 
 // Install with built-in types
 install()
@@ -193,7 +193,7 @@ console.log(restored.id) // 123n
 Or install a custom instance with additional types:
 
 ```ts
-import { install, JSONMark } from "json-mark"
+import { install, JSONMark } from "@ilyasemenov/json-mark"
 
 const customJSON = new JSONMark({
   types: {
@@ -209,7 +209,7 @@ install(customJSON)
 Restores the original native `JSON` methods:
 
 ```ts
-import { install, uninstall } from "json-mark"
+import { install, uninstall } from "@ilyasemenov/json-mark"
 
 install()
 // ... use enhanced JSON ...
@@ -224,7 +224,7 @@ uninstall()
 Access the original native JSON methods even when `install()` is active:
 
 ```ts
-import { install, originalJSON } from "json-mark"
+import { install, originalJSON } from "@ilyasemenov/json-mark"
 
 install()
 
@@ -279,7 +279,7 @@ Escaping: regular strings that start with the marker are encoded via the built-i
 You can customize the marker and delimiter. For example, to minimize escaping overhead, you could pick a Unicode Private Use Area (PUA) character for the marker:
 
 ```ts
-import { JSONMark } from "json-mark"
+import { JSONMark } from "@ilyasemenov/json-mark"
 
 const customJSON = new JSONMark({
   marker: "\uEEEE",
@@ -296,7 +296,7 @@ const customJSON = new JSONMark({
 json-mark is written in TypeScript and provides type inference for the values:
 
 ```ts
-import { parse, prepare, restore, stringify } from "json-mark"
+import { parse, prepare, restore, stringify } from "@ilyasemenov/json-mark"
 
 const data = { id: 123n, name: "test" }
 
@@ -314,7 +314,7 @@ const restored2 = restore(prepared)
 When passing prepared data through the native `JSON.stringify` and `JSON.parse`, you will need to cast manually:
 
 ```ts
-import { prepare, restore } from "json-mark"
+import { prepare, restore } from "@ilyasemenov/json-mark"
 
 const data = { id: 123n, name: "test" }
 
