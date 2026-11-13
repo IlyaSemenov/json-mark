@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsdown",
     "lint": "eslint --fix .",
-    "prepare": "husky",
+    "prepare": "lefthook install",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "types": "bun check && bun check -p tests"
@@ -43,8 +43,6 @@
     "@tsconfig/bun": "^1.0.12",
     "@types/bun": "^1.4.4",
     "eslint": "^9.36.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.3",
     "tsdown": "^0.15.9",
     "typescript": "^5.9.3"
   }
