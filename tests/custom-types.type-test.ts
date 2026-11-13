@@ -1,14 +1,18 @@
-import { customType, JSONMark } from "@ilyasemenov/json-mark"
 import { expectTypeOf, test } from "bun:test"
 
+import { customType, JSONMark } from "@ilyasemenov/json-mark"
+
 class Point {
-  constructor(public x: number, public y: number) {}
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 }
 
 const pointType = customType<Point>({
   test: value => value instanceof Point,
   stringify: value => `${value.x},${value.y}`,
-  parse: (str) => {
+  parse: str => {
     const [x, y] = str.split(",").map(Number)
     return new Point(x!, y!)
   },

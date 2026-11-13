@@ -11,7 +11,13 @@ export type StringifiedObject<T> = string & {
   [typeTag]?: T
 }
 
-export type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue }
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONValue[]
+  | { [key: string]: JSONValue }
 
 /**
  * The "prepared" value (i.e., a JSON-compatible value ready for external serialization), tagged with the original type.
@@ -95,19 +101,16 @@ export class JSONMark implements JSON {
     reviver?: (this: any, key: string, value: any) => any,
   ): T => {
     const parseValue = this.#parseValue
-    return originalJSON.parse(
-      text,
-      function (key, value) {
-        const parsedValue = parseValue(value)
-        if (parsedValue !== value) {
-          return parsedValue
-        }
-        if (typeof reviver === "function") {
-          return reviver.call(this, key, value)
-        }
-        return value
-      },
-    )
+    return originalJSON.parse(text, function (key, value) {
+      const parsedValue = parseValue(value)
+      if (parsedValue !== value) {
+        return parsedValue
+      }
+      if (typeof reviver === "function") {
+        return reviver.call(this, key, value)
+      }
+      return value
+    })
   }
 
   #stringifyValue = (value: unknown): unknown => {
@@ -115,7 +118,7 @@ export class JSONMark implements JSON {
       if (test(value, this.options)) {
         // TODO also try toJSON() if stringify is not provided.
         const payload = stringify ? stringify(value, this.options) : String(value)
-        return this.options.marker + typeName + (payload ? (this.options.delimiter + payload) : "")
+        return this.options.marker + typeName + (payload ? this.options.delimiter + payload : "")
       }
     }
     return value
@@ -124,9 +127,10 @@ export class JSONMark implements JSON {
   #parseValue = (value: unknown): unknown => {
     if (typeof value === "string" && value.startsWith(this.options.marker)) {
       const delimiterIndex = value.indexOf(this.options.delimiter)
-      const [typeName, stringifiedValue] = delimiterIndex > 0
-        ? [value.slice(1, delimiterIndex), value.slice(delimiterIndex + 1)]
-        : [value.slice(1), ""]
+      const [typeName, stringifiedValue] =
+        delimiterIndex > 0
+          ? [value.slice(1, delimiterIndex), value.slice(delimiterIndex + 1)]
+          : [value.slice(1), ""]
       const type = this.options.types[typeName]
       if (type) {
         return type.parse(stringifiedValue, this.options)

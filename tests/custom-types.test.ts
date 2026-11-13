@@ -1,18 +1,26 @@
-import { customType, JSONMark } from "@ilyasemenov/json-mark"
 import { describe, expect, it } from "bun:test"
 
+import { customType, JSONMark } from "@ilyasemenov/json-mark"
+
 class Point {
-  constructor(public x: number, public y: number) {}
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 }
 
 class Color {
-  constructor(public r: number, public g: number, public b: number) {}
+  constructor(
+    public r: number,
+    public g: number,
+    public b: number,
+  ) {}
 }
 
 const pointType = customType<Point>({
   test: value => value instanceof Point,
   stringify: value => `${value.x},${value.y}`,
-  parse: (str) => {
+  parse: str => {
     const [x, y] = str.split(",").map(Number)
     return new Point(x!, y!)
   },
@@ -21,7 +29,7 @@ const pointType = customType<Point>({
 const colorType = customType<Color>({
   test: value => value instanceof Color,
   stringify: value => `${value.r},${value.g},${value.b}`,
-  parse: (str) => {
+  parse: str => {
     const [r, g, b] = str.split(",").map(Number)
     return new Color(r!, g!, b!)
   },

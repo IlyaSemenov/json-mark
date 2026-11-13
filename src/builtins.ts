@@ -5,18 +5,18 @@ import type { TypeRegistry } from "./JSONMark"
 
 export const builtinTypes = {
   // Escape strings
-  "string": {
+  string: {
     test: (value, options) => typeof value === "string" && value.startsWith(options.marker),
     parse: value => value,
   },
 
   // Special numbers (must be first to test before other types)
-  "NaN": customType<number>({
+  NaN: customType<number>({
     test: value => Number.isNaN(value),
     stringify: () => "",
     parse: () => Number.NaN,
   }),
-  "Infinity": customType<number>({
+  Infinity: customType<number>({
     test: value => value === Infinity,
     stringify: () => "",
     parse: () => Infinity,
@@ -28,10 +28,10 @@ export const builtinTypes = {
   }),
 
   // RegExp
-  "RegExp": customType<RegExp>({
+  RegExp: customType<RegExp>({
     test: value => value instanceof RegExp,
     stringify: value => `${value.source}|${value.flags}`,
-    parse: (value) => {
+    parse: value => {
       const delimiterIndex = value.lastIndexOf("|")
       const source = value.slice(0, delimiterIndex)
       const flags = value.slice(delimiterIndex + 1)
@@ -40,66 +40,76 @@ export const builtinTypes = {
   }),
 
   // BigInt
-  "bigint": customType<bigint>({
+  bigint: customType<bigint>({
     test: value => typeof value === "bigint",
     stringify: value => value.toString(),
     parse: value => BigInt(value),
   }),
 
   // Typed Arrays
-  "Uint8Array": customType<Uint8Array>({
+  Uint8Array: customType<Uint8Array>({
     test: value => isUint8Array(value),
     stringify: value => uint8ArrayToBase64(value),
     parse: value => base64ToUint8Array(value),
   }),
-  "Int8Array": customType<Int8Array>({
+  Int8Array: customType<Int8Array>({
     test: value => value instanceof Int8Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Int8Array(base64ToUint8Array(value).buffer),
   }),
-  "Uint8ClampedArray": customType<Uint8ClampedArray>({
+  Uint8ClampedArray: customType<Uint8ClampedArray>({
     test: value => value instanceof Uint8ClampedArray,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Uint8ClampedArray(base64ToUint8Array(value).buffer),
   }),
-  "Int16Array": customType<Int16Array>({
+  Int16Array: customType<Int16Array>({
     test: value => value instanceof Int16Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Int16Array(base64ToUint8Array(value).buffer),
   }),
-  "Uint16Array": customType<Uint16Array>({
+  Uint16Array: customType<Uint16Array>({
     test: value => value instanceof Uint16Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Uint16Array(base64ToUint8Array(value).buffer),
   }),
-  "Int32Array": customType<Int32Array>({
+  Int32Array: customType<Int32Array>({
     test: value => value instanceof Int32Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Int32Array(base64ToUint8Array(value).buffer),
   }),
-  "Uint32Array": customType<Uint32Array>({
+  Uint32Array: customType<Uint32Array>({
     test: value => value instanceof Uint32Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Uint32Array(base64ToUint8Array(value).buffer),
   }),
-  "Float32Array": customType<Float32Array>({
+  Float32Array: customType<Float32Array>({
     test: value => value instanceof Float32Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Float32Array(base64ToUint8Array(value).buffer),
   }),
-  "Float64Array": customType<Float64Array>({
+  Float64Array: customType<Float64Array>({
     test: value => value instanceof Float64Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new Float64Array(base64ToUint8Array(value).buffer),
   }),
-  "BigInt64Array": customType<BigInt64Array>({
+  BigInt64Array: customType<BigInt64Array>({
     test: value => value instanceof BigInt64Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new BigInt64Array(base64ToUint8Array(value).buffer),
   }),
-  "BigUint64Array": customType<BigUint64Array>({
+  BigUint64Array: customType<BigUint64Array>({
     test: value => value instanceof BigUint64Array,
-    stringify: value => uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
+    stringify: value =>
+      uint8ArrayToBase64(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)),
     parse: value => new BigUint64Array(base64ToUint8Array(value).buffer),
   }),
 } satisfies TypeRegistry

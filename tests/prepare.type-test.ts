@@ -1,5 +1,6 @@
-import { prepare, restore } from "@ilyasemenov/json-mark"
 import { expectTypeOf, it, test } from "bun:test"
+
+import { prepare, restore } from "@ilyasemenov/json-mark"
 
 test("round-trip preserves type", () => {
   const value = {
@@ -39,5 +40,7 @@ test("restore works with manual type", () => {
 
 test("restore works with any", () => {
   type TransformerFn = (value: any) => any
-  expectTypeOf((value: unknown) => value === undefined ? value : restore(value)).toExtend<TransformerFn>()
+  expectTypeOf((value: unknown) =>
+    value === undefined ? value : restore(value),
+  ).toExtend<TransformerFn>()
 })

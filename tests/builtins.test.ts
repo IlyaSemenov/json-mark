@@ -1,5 +1,6 @@
-import { parse, stringify } from "@ilyasemenov/json-mark"
 import { describe, expect, it } from "bun:test"
+
+import { parse, stringify } from "@ilyasemenov/json-mark"
 
 describe("special numbers", () => {
   it("supports NaN", () => {
@@ -175,7 +176,13 @@ describe("typed arrays", () => {
     const json = stringify(data)
     const restored = parse(json)
     expect(restored.array).toBeInstanceOf(BigInt64Array)
-    expect(Array.from(restored.array)).toEqual([-9223372036854775808n, -1n, 0n, 1n, 9223372036854775807n])
+    expect(Array.from(restored.array)).toEqual([
+      -9223372036854775808n,
+      -1n,
+      0n,
+      1n,
+      9223372036854775807n,
+    ])
   })
 
   it("supports BigUint64Array", () => {

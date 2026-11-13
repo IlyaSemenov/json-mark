@@ -1,5 +1,6 @@
-import { parse, stringify } from "@ilyasemenov/json-mark"
 import { expect, it } from "bun:test"
+
+import { parse, stringify } from "@ilyasemenov/json-mark"
 
 it("handles standard JSON types", () => {
   const obj = { test: true, num: 42, str: "hello", arr: [1, 2, 3] }

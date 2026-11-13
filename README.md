@@ -41,7 +41,7 @@ const data = {
   buffer: new Uint8Array([1, 2, 3, 4, 5]),
   pattern: /test/gi,
   special: Number.NaN,
-  name: "test"
+  name: "test",
 }
 
 const json = stringify(data)
@@ -85,7 +85,7 @@ import { prepare, restore } from "json-mark"
 
 const data = {
   id: 123n,
-  buffer: new Uint8Array([1, 2, 3])
+  buffer: new Uint8Array([1, 2, 3]),
 }
 
 // Convert custom types to marked strings
@@ -126,7 +126,10 @@ import { customType, JSONMark } from "json-mark"
 
 // Define a custom type
 class Point {
-  constructor(public x: number, public y: number) {}
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 }
 
 // Create custom instance with your custom types (built-in types are auto-included)
@@ -135,7 +138,7 @@ const customJSON = new JSONMark({
     Point: customType<Point>({
       test: value => value instanceof Point,
       stringify: value => `${value.x},${value.y}`,
-      parse: (str) => {
+      parse: str => {
         const [x, y] = str.split(",").map(Number)
         return new Point(x!, y!)
       },
