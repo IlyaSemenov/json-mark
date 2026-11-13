@@ -1,8 +1,6 @@
 [settings]
 lockfile = true
 
-[env]
-MISE_NODE_COREPACK = 1
-
 [tools]
-node = '24.5'
+bun = "1.4.4"
+node = "26"

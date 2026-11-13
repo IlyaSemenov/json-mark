@@ -23,30 +23,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Setup node
-        uses: actions/setup-node@v4
+      - name: Setup mise
+        uses: jdx/mise-action@v5
         with:
-          node-version: 24.5
-          cache: pnpm
+          version: 2026.11.7
 
       - name: Install deps
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Build packages
-        run: pnpm build
+        run: bun run build
 
       - name: Test packages
-        run: pnpm test
+        run: bun run test
 
       - name: Capture new release versions
         if: ${{ github.ref == env.MAIN_REF }}
         run: |
-          if pnpx @changesets/cli status --output=release.json; then
+          if npx @changesets/cli status --output=release.json; then
             echo "RELEASE=Version $(jq -r '.releases[0].newVersion' release.json)" >> "$GITHUB_ENV"
             rm release.json
           fi
@@ -55,7 +51,8 @@ jobs:
         if: ${{ github.ref == env.MAIN_REF }}
         uses: changesets/action@v1
         with:
-          publish: pnpm changeset publish
+          # Bun does not support npm OIDC Trusted Publishing through bunx.
+          publish: npx changeset publish
           title: ${{ env.RELEASE }}
           commit: ${{ env.RELEASE }}
         env:
