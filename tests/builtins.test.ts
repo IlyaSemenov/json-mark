@@ -1,5 +1,5 @@
-import { parse, stringify } from "json-mark"
-import { describe, expect, it } from "vitest"
+import { parse, stringify } from "@ilyasemenov/json-mark"
+import { describe, expect, it } from "bun:test"
 
 describe("special numbers", () => {
   it("supports NaN", () => {

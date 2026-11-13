@@ -1,5 +1,5 @@
-import { parse, stringify } from "json-mark"
-import { expect, it } from "vitest"
+import { parse, stringify } from "@ilyasemenov/json-mark"
+import { expect, it } from "bun:test"
 
 it("handles standard JSON types", () => {
   const obj = { test: true, num: 42, str: "hello", arr: [1, 2, 3] }
@@ -62,7 +62,7 @@ it("supports custom replacer function", () => {
     }
     return value
   })
-  expect(parse(json)).toEqual({ a: 1 })
+  expect(parse(json)).toEqual<{ a: number }>({ a: 1 })
 })
 
 it("supports custom reviver function", () => {

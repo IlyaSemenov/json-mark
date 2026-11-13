@@ -1,5 +1,5 @@
-import { prepare, restore } from "json-mark"
-import { describe, expect, it } from "vitest"
+import { prepare, restore } from "@ilyasemenov/json-mark"
+import { describe, expect, it } from "bun:test"
 
 describe("prepare", () => {
   it("converts bigint for external JSON.stringify", () => {

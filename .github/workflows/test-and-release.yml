@@ -36,6 +36,9 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Typecheck packages
+        run: bun run types
+
       - name: Test packages
         run: bun run test
 

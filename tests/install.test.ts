@@ -1,5 +1,5 @@
-import { install, originalJSON, uninstall } from "json-mark"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { install, originalJSON, uninstall } from "@ilyasemenov/json-mark"
+import { afterEach, beforeEach, describe, expect, it } from "bun:test"
 
 beforeEach(() => {
   // Ensure clean state

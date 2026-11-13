@@ -1,5 +1,5 @@
-import { customType, JSONMark } from "json-mark"
-import { describe, expect, it } from "vitest"
+import { customType, JSONMark } from "@ilyasemenov/json-mark"
+import { describe, expect, it } from "bun:test"
 
 class Point {
   constructor(public x: number, public y: number) {}

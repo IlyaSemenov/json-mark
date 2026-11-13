@@ -1,5 +1,5 @@
-import { JSONMark } from "json-mark"
-import { expect, it } from "vitest"
+import { JSONMark } from "@ilyasemenov/json-mark"
+import { expect, it } from "bun:test"
 
 const customJSON = new JSONMark({ marker: "→", delimiter: "|" })
 

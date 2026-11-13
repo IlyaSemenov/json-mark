@@ -31,7 +31,8 @@
     "lint": "eslint --fix .",
     "prepare": "husky",
     "prepublishOnly": "bun run build",
-    "test": "vitest run --typecheck"
+    "test": "bun test",
+    "types": "bun check && bun check -p tests"
   },
   "dependencies": {
     "uint8array-extras": "^1.5.0"
@@ -39,13 +40,12 @@
   "devDependencies": {
     "@changesets/cli": "^2.29.7",
     "@ilyasemenov/eslint-config": "^1.4.2",
+    "@tsconfig/bun": "^1.0.12",
+    "@types/bun": "^1.4.4",
     "eslint": "^9.36.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
-    "tsconfig-vite-node": "^1.2.0",
     "tsdown": "^0.15.9",
-    "typescript": "^5.9.3",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3"
   }
 }

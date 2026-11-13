@@ -1,5 +1,5 @@
-import { parse, stringify } from "json-mark"
-import { expectTypeOf, test } from "vitest"
+import { parse, stringify } from "@ilyasemenov/json-mark"
+import { expectTypeOf, test } from "bun:test"
 
 test("stringify returns string", () => {
   const obj = { test: true }

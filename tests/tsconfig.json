@@ -2,7 +2,8 @@
   "extends": "../tsconfig",
   "compilerOptions": {
     "paths": {
-      "json-mark": ["../src"]
+      "@ilyasemenov/json-mark": ["../src"]
     }
-  }
+  },
+  "include": ["**/*.ts"]
 }
