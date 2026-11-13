@@ -9,9 +9,8 @@
     "url": "https://github.com/IlyaSemenov/json-mark"
   },
   "files": [
-    "!src/**/*.test.*",
-    "dist",
-    "src"
+    "README.md",
+    "dist"
   ],
   "type": "module",
   "sideEffects": [
